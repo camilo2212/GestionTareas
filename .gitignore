@@ -1,0 +1,55 @@
+### Java ###
+*.class
+*.log
+*.ctxt
+hs_err_pid*
+
+### Maven ###
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+mvnw
+mvnw.cmd
+
+### Spring Boot ###
+# Archivos de configuración (pueden contener contraseñas o URLs de BD)
+application.properties
+application.yml
+
+### STS / Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
+
+### Logs y backups ###
+*.log
+*.bak
+*.tmp
