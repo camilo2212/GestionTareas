@@ -9,6 +9,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/proyectos")
+@CrossOrigin(origins = "*")
 public class ProyectoController {
 
     @Autowired

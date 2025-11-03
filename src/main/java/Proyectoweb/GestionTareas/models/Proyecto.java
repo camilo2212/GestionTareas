@@ -5,6 +5,8 @@ import lombok.*;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,9 +23,15 @@ public class Proyecto {
 
     private String descripcion;
 
-    @Temporal(TemporalType.DATE)
-    private Date fechaCreacion;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "fecha_creacion")
+    private Date fechaCreacion = new Date();
 
-    @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne
+    @JoinColumn(name = "responsable_id")
+    private Usuario responsable;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "proyecto")
     private List<Tarea> tareas;
 }

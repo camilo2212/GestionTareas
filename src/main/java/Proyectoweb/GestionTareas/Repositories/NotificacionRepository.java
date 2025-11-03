@@ -8,9 +8,7 @@ import java.util.List;
 @Repository
 public interface NotificacionRepository extends JpaRepository<Notificacion, Integer> {
 
-    // Buscar notificaciones por usuario
-    List<Notificacion> findByUsuario_Id(int usuarioId);
+    List<Notificacion> findByDestinatario_Id(int destinatarioId);
 
-    // Buscar solo las no leídas
-    List<Notificacion> findByUsuario_IdAndLeidaFalse(int usuarioId);
+    List<Notificacion> findByDestinatario_IdAndLeidaFalse(int destinatarioId);
 }
