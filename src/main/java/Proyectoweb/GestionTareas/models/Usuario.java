@@ -12,9 +12,8 @@ import java.util.List;
 public class Usuario {
 
     @Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Integer id; 
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id; 
 
     @Column(nullable = false)
     private String nombre;
@@ -25,9 +24,11 @@ private Integer id;
     @Column(nullable = false)
     private String contrasena;
 
+    // Puedes usar un enum si prefieres: private Rol rol;
     @Column(nullable = false)
     private String rol; // ADMINISTRADOR o MIEMBRO
 
+    // Asegúrate que el nombre coincida con el atributo en Tarea (por ejemplo, "responsable").
     @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tarea> tareasAsignadas;
 

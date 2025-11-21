@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tareas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 mb-4">
+    <a class="navbar-brand" th:href="@{/}">Gestión Tareas</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto gap-2">
+            <li class="nav-item"><a class="nav-link" th:href="@{/proyectos}">Proyectos</a></li>
+            <li class="nav-item"><a class="nav-link active" th:href="@{/tareas}">Tareas</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/usuarios}">Usuarios</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/notificaciones}">Notificaciones</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <h2 class="mb-4">Tareas</h2>
+
+    <!-- Barra de filtros/búsqueda -->
+    <form class="row g-2 mb-4" method="get" th:action="@{/tareas}">
+        <div class="col-md-3">
+            <input class="form-control" type="text" name="query" placeholder="Buscar título o descripción" th:value="${param.query}">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="prioridad">
+                <option value="">Prioridad...</option>
+                <option value="Baja" th:selected="${param.prioridad == 'Baja'}">Baja</option>
+                <option value="Media" th:selected="${param.prioridad == 'Media'}">Media</option>
+                <option value="Alta" th:selected="${param.prioridad == 'Alta'}">Alta</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="estado">
+                <option value="">Estado...</option>
+                <option value="Pendiente" th:selected="${param.estado == 'Pendiente'}">Pendiente</option>
+                <option value="En progreso" th:selected="${param.estado == 'En progreso'}">En progreso</option>
+                <option value="Completada" th:selected="${param.estado == 'Completada'}">Completada</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-primary w-100">Filtrar</button>
+        </div>
+        <div class="col-md-2">
+            <a class="btn btn-outline-secondary w-100" th:href="@{/tareas}">Limpiar</a>
+        </div>
+    </form>
+
+    <ul class="nav nav-tabs mb-3" id="tareasTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="listado-tab" data-bs-toggle="tab" data-bs-target="#listado" type="button" role="tab" aria-controls="listado" aria-selected="true">
+                Lista de Tareas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">
+                Estadísticas
+            </button>
+        </li>
+    </ul>
+    <div class="tab-content" id="tareasTabContent">
+
+        <!-- TAB: Lista de Tareas -->
+        <div class="tab-pane fade show active" id="listado" role="tabpanel" aria-labelledby="listado-tab">
+            <div class="card p-4 shadow-sm mb-4">
+                <h5 class="mb-3">Crear Tarea</h5>
+                <form th:action="@{/tareas}" method="post" autocomplete="off">
+                    <div class="mb-2">
+                        <input name="titulo" class="form-control" placeholder="Título" required maxlength="120">
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción" maxlength="300"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <select name="prioridad" class="form-select" required>
+                            <option value="">Prioridad...</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <select name="estado" class="form-select" required>
+                            <option value="">Estado...</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En progreso">En progreso</option>
+                            <option value="Completada">Completada</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <select name="responsableId" class="form-select" required>
+                            <option value="">Responsable...</option>
+                            <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.nombre}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha límite:</label>
+                        <input type="date" name="fechaLimite" class="form-control" required>
+                    </div>
+                    <button class="btn btn-primary w-100">Guardar</button>
+                </form>
+            </div>
+            <h4>Lista de Tareas</h4>
+            <div class="row" th:if="${#lists.isEmpty(tareas)}">
+                <div class="col">
+                    <div class="alert alert-info">No hay tareas registradas.</div>
+                </div>
+            </div>
+            <div class="row" th:unless="${#lists.isEmpty(tareas)}">
+                <div class="col-md-6 mb-3" th:each="t : ${tareas}">
+                    <div class="card shadow-sm p-3 card-hover h-100"
+                        th:classappend="${t.fechaLimite.isBefore(T(java.time.LocalDateTime).now()) and t.estado != 'Completada'} ? 'border-danger bg-danger-subtle' : ''">
+                        <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <h5 class="card-title mb-0" th:text="${t.titulo}"></h5>
+                            <span class="badge text-bg-secondary" th:text="${t.prioridad}"></span>
+                        </div>
+                        <p class="card-text text-muted mb-1" th:text="${t.descripcion}"></p>
+                        <div>
+                            <small class="d-block text-muted">
+                                Estado: <span th:text="${t.estado}"></span>
+                                &nbsp;|&nbsp;
+                                Límite: <span th:text="${#temporals.format(t.fechaLimite, 'dd/MM/yyyy')}"></span>
+                                <span th:if="${t.responsable != null}">
+                                    &nbsp;|&nbsp; Responsable: <span th:text="${t.responsable.nombre}"></span>
+                                </span>
+                            </small>
+                        </div>
+                        <div class="mt-3 d-flex gap-2">
+                            <form th:action="@{'/tareas/' + ${t.id} + '/eliminar'}" method="post">
+                                <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('¿Eliminar tarea?')">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Dashboard de Estadísticas -->
+        <div class="tab-pane fade" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+            <div class="row my-4">
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h6>Total Tareas</h6>
+                            <h3 th:text="${tareasTotal}">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h6>Completadas</h6>
+                            <h3 th:text="${tareasCompletadas}">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h6>Pendientes</h6>
+                            <h3 th:text="${tareasPendientes}">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <div class="card shadow">
+                        <div class="card-body text-center">
+                            <h6>En Progreso</h6>
+                            <h3 th:text="${tareasEnProgreso}">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card p-3 shadow">
+                        <h5 class="mb-3">Tareas por Prioridad</h5>
+                        <canvas id="prioridadChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card p-3 shadow">
+                        <h5 class="mb-3">Tareas por Estado</h5>
+                        <canvas id="estadoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const prioridadAlta      = [[${prioridadAlta}]];
+    const prioridadMedia     = [[${prioridadMedia}]];
+    const prioridadBaja      = [[${prioridadBaja}]];
+    const tareasPendientes   = [[${tareasPendientes}]];
+    const tareasEnProgreso   = [[${tareasEnProgreso}]];
+    const tareasCompletadas  = [[${tareasCompletadas}]];
+</script>
+
+<script>
+    const prioridadChart = new Chart(document.getElementById('prioridadChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Alta', 'Media', 'Baja'],
+            datasets: [{
+                label: 'Prioridad',
+                data: [prioridadAlta, prioridadMedia, prioridadBaja],
+                backgroundColor: ['#dd3a53', '#f2bc41', '#37bbb2']
+            }]
+        }
+    });
+
+    const estadoChart = new Chart(document.getElementById('estadoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendiente', 'En Progreso', 'Completada'],
+            datasets: [{
+                label: 'Estado',
+                data: [tareasPendientes, tareasEnProgreso, tareasCompletadas],
+                backgroundColor: ['#f2bc41', '#2196f3', '#4caf50']
+            }]
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@ package Proyectoweb.GestionTareas.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -15,14 +15,17 @@ public class Notificacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(nullable = false)
     private String mensaje;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date fecha;
+    private boolean leida = false;
 
-    private boolean leida;
+    @Column(nullable = false)
+    private String tipo; // "INFO", "ALERTA", etc. Opcional pero recomendado
+
+    private LocalDateTime fecha;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "destinatario_id")
     private Usuario destinatario;
 }

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Tareas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 mb-4">
+    <a class="navbar-brand" th:href="@{/}">Gestión Tareas</a>
+</nav>
+
+<div class="container">
+    <h2 class="mb-4">Dashboard: Estadísticas de Tareas</h2>
+
+    <!-- Indicadores principales -->
+    <div class="row mb-4">
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6>Total Tareas</h6>
+                    <h3 th:text="${tareasTotal}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6>Proyectos Activos</h6>
+                    <h3 th:text="${proyectosTotal}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6>Completadas</h6>
+                    <h3 th:text="${tareasCompletadas}">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6>Pendientes</h6>
+                    <h3 th:text="${tareasPendientes}">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row my-4">
+        <div class="col-md-6 mb-4">
+            <div class="card p-3 shadow">
+                <h5 class="mb-3">Tareas por Prioridad</h5>
+                <canvas id="prioridadChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card p-3 shadow">
+                <h5 class="mb-3">Tareas por Estado</h5>
+                <canvas id="estadoChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Variables Thymeleaf para JavaScript -->
+<script th:inline="javascript">
+    const prioridadAlta      = [[${prioridadAlta}]];
+    const prioridadMedia     = [[${prioridadMedia}]];
+    const prioridadBaja      = [[${prioridadBaja}]];
+    const tareasPendientes   = [[${tareasPendientes}]];
+    const tareasEnProgreso   = [[${tareasEnProgreso}]];
+    const tareasCompletadas  = [[${tareasCompletadas}]];
+</script>
+
+<script>
+    // Gráfico de Prioridad
+    const prioridadChart = new Chart(document.getElementById('prioridadChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Alta', 'Media', 'Baja'],
+            datasets: [{
+                label: 'Prioridad',
+                data: [prioridadAlta, prioridadMedia, prioridadBaja],
+                backgroundColor: ['#dd3a53', '#f2bc41', '#37bbb2']
+            }]
+        }
+    });
+
+    // Gráfico de Estado
+    const estadoChart = new Chart(document.getElementById('estadoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendiente', 'En Progreso', 'Completada'],
+            datasets: [{
+                label: 'Estado',
+                data: [tareasPendientes, tareasEnProgreso, tareasCompletadas],
+                backgroundColor: ['#f2bc41', '#2196f3', '#4caf50']
+            }]
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

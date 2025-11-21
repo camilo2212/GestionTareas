@@ -26,26 +26,23 @@ public class Tarea {
 
     private String prioridad;
 
-    // 🕒 Fechas modernas con LocalDateTime (no necesita @Temporal)
     private LocalDateTime fechaCreacion;
 
     private LocalDateTime fechaLimite;
 
-    // 👤 Relación con Usuario
+    // Relación con Usuario
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario responsable;
 
-    // 🧱 Relación con Proyecto
+    // Relación con Proyecto
     @ManyToOne
     @JoinColumn(name = "proyecto_id")
     private Proyecto proyecto;
 
-    // 💬 Comentarios asociados
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comentario> comentarios;
 
-    // 📎 Archivos asociados
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Archivo> archivos;
 }

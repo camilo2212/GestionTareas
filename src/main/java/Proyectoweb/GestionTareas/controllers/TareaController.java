@@ -3,8 +3,12 @@ package Proyectoweb.GestionTareas.controllers;
 import Proyectoweb.GestionTareas.models.Tarea;
 import Proyectoweb.GestionTareas.Repositories.TareaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @RestController
@@ -28,12 +32,31 @@ public class TareaController {
         return ResponseEntity.ok(tarea);
     }
 
-    // ✅ Crear nueva tarea
-    @PostMapping
-    public Tarea createTarea(@RequestBody Tarea tarea) {
-        tarea.setFechaCreacion(java.time.LocalDateTime.now());
-        return tareaRepository.save(tarea);
-    }
+    @PostMapping("/tareas")
+public String crearTarea(@RequestParam String titulo,
+                         @RequestParam String descripcion,
+                         @RequestParam String prioridad,
+                         @RequestParam String estado,
+                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaLimite) {
+
+    LocalDateTime fechaLimiteLDT = fechaLimite.toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime();
+
+    // Para la fecha de creación usamos el momento actual:
+    LocalDateTime fechaCreacionLDT = LocalDateTime.now();
+
+    Tarea t = new Tarea();
+    t.setTitulo(titulo);
+    t.setDescripcion(descripcion);
+    t.setPrioridad(prioridad);
+    t.setEstado(estado);
+    t.setFechaLimite(fechaLimiteLDT);
+    t.setFechaCreacion(fechaCreacionLDT);
+    tareaRepository.save(t);
+    return "redirect:/tareas";
+}
+
 
     // ✅ Actualizar tarea
     @PutMapping("/{id}")

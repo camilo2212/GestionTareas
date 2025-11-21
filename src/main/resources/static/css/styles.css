@@ -4,6 +4,13 @@ body {
 
 .navbar-brand {
     font-weight: bold;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show {
+    background-color: #495057;
+    border-radius: 0.3rem;
 }
 
 .card-hover {
@@ -11,5 +18,33 @@ body {
 }
 
 .card-hover:hover {
-    transform: scale(1.02);
+    transform: scale(1.02) translateY(-3px);
+    box-shadow: 0 4px 14px rgba(50, 50, 93, 0.18);
+}
+
+input, textarea, button {
+    border-radius: 0.3em !important;
+}
+
+.btn-primary {
+    font-weight: 500;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.card-text {
+    font-size: 1rem;
+}
+
+.alert-info {
+    font-size: 1rem;
+    font-style: italic;
+}
+
+@media (max-width: 767px) {
+    .navbar-brand {
+        font-size: 1.05rem;
+    }
 }
