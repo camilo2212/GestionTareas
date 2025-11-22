@@ -6,10 +6,12 @@
     <title>Gestión de Proyectos</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom styles -->
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- CSS general -->
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body class="bg-light">
+<body>
 
 <!-- Barra de navegación -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 mb-4">
@@ -21,72 +23,85 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto gap-2">
             <li class="nav-item">
-                <a class="nav-link active" th:href="@{/proyectos}">Proyectos</a>
+                <a class="nav-link active" th:href="@{/proyectos}"><i class="bi bi-kanban"></i> Proyectos</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/tareas}">Tareas</a>
+                <a class="nav-link" th:href="@{/tareas}"><i class="bi bi-check2-square"></i> Tareas</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/usuarios}">Usuarios</a>
+                <a class="nav-link" th:href="@{/usuarios}"><i class="bi bi-people"></i> Usuarios</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/notificaciones}">Notificaciones</a>
+                <a class="nav-link" th:href="@{/notificaciones}"><i class="bi bi-bell"></i> Notificaciones</a>
             </li>
         </ul>
     </div>
 </nav>
 
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-7">
-            <h2>Proyectos</h2>
-        </div>
+<div class="container mt-3">
+    <div class="d-flex align-items-center mb-4 justify-content-center">
+        <span class="icon-bg"><i class="bi bi-kanban"></i></span>
+        <h2 class="main-title mb-0 ms-3">Proyectos</h2>
     </div>
 
-    <!-- Formulario de creación -->
-    <div class="card p-4 shadow-sm mb-4">
-        <h5 class="mb-3">Crear Proyecto</h5>
+    <!-- Formulario creación proyecto -->
+    <div class="card form-card shadow-sm mb-5">
+        <h5 class="mb-3"><i class="bi bi-folder-plus"></i> Crear nuevo proyecto</h5>
         <form th:action="@{/proyectos}" method="post" autocomplete="off">
             <div class="mb-2">
                 <input name="nombre" class="form-control" placeholder="Nombre del proyecto" required maxlength="200">
             </div>
-            <div class="mb-3">
-                <textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción" maxlength="300"></textarea>
+            <div class="mb-2">
+                <textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción (opcional)" maxlength="300"></textarea>
             </div>
-            <button class="btn btn-primary w-100">Guardar</button>
+            <div class="mb-3">
+                <label>Participantes (correos separados por coma):</label>
+                <input type="text" class="form-control" name="correosParticipantes" placeholder="correo1@email.com, correo2@email.com">
+            </div>
+            <button class="btn btn-main w-100" type="submit"><i class="bi bi-plus-circle"></i> Guardar</button>
         </form>
     </div>
 
-    <!-- Lista de Proyectos -->
-    <h4>Lista de Proyectos</h4>
+    <h4 class="mb-3"><i class="bi bi-folder2-open"></i> Lista de Proyectos</h4>
     <div class="row" th:if="${#lists.isEmpty(proyectos)}">
         <div class="col">
             <div class="alert alert-info">No hay proyectos registrados.</div>
         </div>
     </div>
     <div class="row" th:unless="${#lists.isEmpty(proyectos)}">
-        <div class="col-md-4 mb-3" th:each="p : ${proyectos}">
-            <div class="card shadow-sm p-3 card-hover h-100">
-                <h5 class="card-title mb-1" th:text="${p.nombre}"></h5>
-                <p class="card-text text-muted mb-2" th:text="${p.descripcion}"></p>
-                <div>
-                    <small class="text-muted">
-                        Creado: <span th:text="${#dates.format(p.fechaCreacion, 'dd/MM/yyyy')}"></span>
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-4" th:each="p : ${proyectos}">
+            <div class="card card-hover shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title mb-1"><i class="bi bi-folder-fill text-info"></i> <span th:text="${p.nombre}"></span></h5>
+                    <p class="card-text text-muted mb-2" th:text="${p.descripcion}"></p>
+                    <small class="text-muted mb-2 d-block">
+                        <i class="bi bi-calendar-event"></i> Creado: <span th:text="${#dates.format(p.fechaCreacion, 'dd/MM/yyyy')}"></span>
                     </small>
-                </div>
-                <div class="mt-3 d-flex gap-2">
-                    <a class="btn btn-info btn-sm" th:href="@{|/tareas?proyecto=${p.id}|}">Ver Tareas</a>
-                    <form th:action="@{'/proyectos/' + ${p.id} + '/eliminar'}" method="post" th:object="${p}">
-                        <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('¿Eliminar proyecto?')">Eliminar</button>
-                    </form>
+                    <div>
+                        <small class="d-block mb-2">
+                            <i class="bi bi-people"></i>
+                            <strong>Participantes:</strong>
+                            <span th:if="${p.participantes == null or #lists.isEmpty(p.participantes)}">Sin asignar</span>
+                            <span th:each="u : ${p.participantes}" th:text="${u.nombre} + ' '" />
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2 mt-auto">
+                        <a class="btn btn-info btn-sm" th:href="@{|/tareas?proyecto=${p.id}|}">
+                            <i class="bi bi-list-task"></i> Ver Tareas
+                        </a>
+                        <form th:action="@{'/proyectos/' + ${p.id} + '/eliminar'}" method="post" th:object="${p}">
+                            <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('¿Eliminar proyecto?')">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS y custom JS -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/app.js"></script>
 </body>
 </html>

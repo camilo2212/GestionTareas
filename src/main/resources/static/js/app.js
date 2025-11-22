@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // ----------- DASHBOARD DE TAREAS (CHART.JS) -----------
 
-// Asegúrate de que las variables prioridadAlta, prioridadMedia, etc. están declaradas en el HTML principal
 document.addEventListener("DOMContentLoaded", function() {
     // Gráfico de prioridades
     if (typeof Chart !== 'undefined' && document.getElementById('prioridadChart')) {
@@ -104,5 +103,55 @@ document.addEventListener("DOMContentLoaded", function() {
                 }]
             }
         });
+    }
+
+    // ----------- FULLCALENDAR (VISTA DÍA + MODAL DETALLE) -----------
+
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl && typeof FullCalendar !== 'undefined') {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            // Vista inicial por día; puedes cambiar a 'dayGridDay' si no quieres horas [web:29][web:33]
+            initialView: 'timeGridDay',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridDay,timeGridWeek,dayGridMonth'
+            },
+            events: calendarEvents.map(t => ({
+                title: t.titulo + (t.responsable ? " (" + t.responsable.nombre + ")" : ""),
+                start: t.fechaLimite,
+                color: t.estado === 'Completada' ? '#4caf50'
+                      : (t.estado === 'En progreso' ? '#2196f3' : '#f2bc41'),
+                extendedProps: {
+                    descripcion: t.descripcion,
+                    prioridad: t.prioridad,
+                    estado: t.estado
+                }
+            })),
+            eventClick: function(info) {
+                // Llenar modal con detalles de la tarea [web:2][web:58]
+                document.getElementById("detalleTareaTitulo").textContent =
+                    info.event.title;
+                document.getElementById("detalleTareaDescripcion").textContent =
+                    info.event.extendedProps.descripcion || "";
+                document.getElementById("detalleTareaPrioridad").textContent =
+                    info.event.extendedProps.prioridad || "";
+                document.getElementById("detalleTareaEstado").textContent =
+                    info.event.extendedProps.estado || "";
+
+                const fecha = new Date(info.event.start);
+                document.getElementById("detalleTareaFecha").textContent =
+                    fecha.toLocaleDateString();
+
+                const modal = new bootstrap.Modal(
+                    document.getElementById('detalleTareaModal')
+                );
+                modal.show();
+
+                info.jsEvent.preventDefault();
+            }
+        });
+
+        calendar.render();
     }
 });

@@ -34,4 +34,13 @@ public class Proyecto {
     @JsonIgnore
     @OneToMany(mappedBy = "proyecto")
     private List<Tarea> tareas;
+
+    @ManyToMany
+@JoinTable(
+    name = "proyecto_participantes",
+    joinColumns = @JoinColumn(name = "proyecto_id"),
+    inverseJoinColumns = @JoinColumn(name = "usuario_id")
+)
+private List<Usuario> participantes;
+
 }

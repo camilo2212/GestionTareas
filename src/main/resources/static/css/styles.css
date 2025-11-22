@@ -1,50 +1,83 @@
-body {
-    background: #f4f6f9;
-}
+/* Tu CSS general para todo el proyecto */
 
+body {
+    background: linear-gradient(120deg, #37bbb2 0%, #dd3a53 100%);
+    min-height: 100vh;
+}
 .navbar-brand {
     font-weight: bold;
     font-size: 1.3rem;
     letter-spacing: 1px;
 }
-
 .navbar-nav .nav-link.active, .navbar-nav .nav-link.show {
     background-color: #495057;
     border-radius: 0.3rem;
 }
-
 .card-hover {
     transition: 0.2s;
 }
-
 .card-hover:hover {
     transform: scale(1.02) translateY(-3px);
     box-shadow: 0 4px 14px rgba(50, 50, 93, 0.18);
 }
-
 input, textarea, button {
     border-radius: 0.3em !important;
 }
-
 .btn-primary {
     font-weight: 500;
 }
-
 .card-title {
     font-weight: 600;
 }
-
 .card-text {
     font-size: 1rem;
 }
-
 .alert-info {
     font-size: 1rem;
     font-style: italic;
 }
 
 @media (max-width: 767px) {
-    .navbar-brand {
-        font-size: 1.05rem;
-    }
+    .navbar-brand { font-size: 1.05rem; }
+    /* Otros estilos responsive aquí */
+}
+
+/* Las clases artísticas del login y dashboard de antes también pueden estar aquí */
+.login-card, .dashboard-card, .form-card {
+    background: #fff;
+    border-radius: 1em;
+    box-shadow: 0 8px 32px rgba(50,50,93,0.22);
+    padding: 2em;
+    max-width: 400px;
+    width: 100%;
+    margin: 2em auto;
+}
+
+.btn-main {
+    background: linear-gradient(90deg,#27bfb1,#e94a54);
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 0.5em;
+    box-shadow: 0 4px 18px rgba(50,50,93,0.08);
+    transition: background 0.2s;
+}
+.btn-main:hover {
+    background: linear-gradient(90deg,#e94a54,#27bfb1);
+}
+.icon-bg {
+    font-size: 2.5em;
+    color: #37bbb2;
+    background: #f4f6f9;
+    border-radius: 0.7em;
+    box-shadow: 0 1px 8px #6cf7e4;
+    padding: 0.4em;
+    margin-bottom: 1em;
+}
+.card-link {
+    color: #dd3a53 !important;
+    font-weight: 500;
+}
+.text-danger {
+    font-weight: 500;
 }
