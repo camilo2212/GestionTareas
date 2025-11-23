@@ -10,4 +10,8 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Integer> {
 
     // Buscar proyectos por responsable
     List<Proyecto> findByResponsable_Id(int usuarioId);
+    // Buscar proyectos donde el usuario es participante
+    List<Proyecto> findByParticipantes_Id(Integer usuarioId);
+
+    
 }

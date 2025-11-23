@@ -32,9 +32,6 @@ public class Usuario {
     @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tarea> tareasAsignadas;
 
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comentario> comentarios;
-
     @OneToMany(mappedBy = "destinatario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notificacion> notificaciones;
 }

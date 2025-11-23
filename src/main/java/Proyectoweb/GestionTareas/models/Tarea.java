@@ -39,10 +39,4 @@ public class Tarea {
     @ManyToOne
     @JoinColumn(name = "proyecto_id")
     private Proyecto proyecto;
-
-    @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comentario> comentarios;
-
-    @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Archivo> archivos;
 }
