@@ -15,4 +15,5 @@ public interface TareaRepository extends JpaRepository<Tarea, Integer> {
     List<Tarea> findByResponsableId(int usuarioId);
 
     List<Tarea> findByProyectoId(int proyectoId);
+    
 }

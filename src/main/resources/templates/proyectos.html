@@ -67,11 +67,15 @@
     </div>
 
     <h4 class="mb-3"><i class="bi bi-folder2-open"></i> Lista de Proyectos</h4>
+    
+    <!-- Mensaje cuando no hay proyectos -->
     <div class="row" th:if="${#lists.isEmpty(proyectos)}">
         <div class="col">
             <div class="alert alert-info">No hay proyectos registrados.</div>
         </div>
     </div>
+    
+    <!-- Lista de proyectos -->
     <div class="row" th:unless="${#lists.isEmpty(proyectos)}">
         <div class="col-lg-4 col-md-6 col-sm-12 mb-4" th:each="p : ${proyectos}">
             <div class="card card-hover shadow-sm h-100">
@@ -100,15 +104,16 @@
                                 th:attr="data-bs-target='#editarProyecto' + ${p.id}">
                             <i class="bi bi-pencil-square"></i> Editar
                         </button>
-                        <form th:action="@{'/proyectos/' + ${p.id} + '/eliminar'}" method="post" th:object="${p}" class="d-inline">
+                        <form th:action="@{'/proyectos/' + ${p.id} + '/eliminar'}" method="post" class="d-inline">
                             <button class="btn btn-danger btn-sm" type="submit"
-                             onclick="return confirm('¿Eliminar proyecto?');">
+                             onclick="return confirm('¿Estás seguro de eliminar este proyecto? Se eliminarán también todas sus tareas.');">
                                 <i class="bi bi-trash"></i> Eliminar
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
+            
             <!-- Modal edición proyecto -->
             <div class="modal fade" th:id="'editarProyecto' + ${p.id}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">

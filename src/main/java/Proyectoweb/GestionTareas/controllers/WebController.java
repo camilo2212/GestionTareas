@@ -44,6 +44,8 @@ public class WebController {
         return "index";
     }
 
+    // ==================== PROYECTOS ====================
+    
     @GetMapping("/proyectos")
     public String vistaProyectos(Model model, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
@@ -62,6 +64,7 @@ public class WebController {
             HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Proyecto p = new Proyecto();
         p.setNombre(nombre);
         p.setDescripcion(descripcion);
@@ -70,6 +73,7 @@ public class WebController {
 
         List<Usuario> participantes = new ArrayList<>();
         participantes.add(usuario); // incluir al creador
+        
         if (correosParticipantes != null && !correosParticipantes.trim().isEmpty()) {
             String[] correos = correosParticipantes.split(",");
             for (String correo : correos) {
@@ -90,27 +94,87 @@ public class WebController {
         return "redirect:/proyectos";
     }
 
+    @PostMapping("/proyectos/{id}/editar")
+    public String editarProyecto(
+            @PathVariable Integer id,
+            @RequestParam String nombre,
+            @RequestParam String descripcion,
+            @RequestParam(required = false) String correosParticipantes,
+            HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        if (usuario == null) return "redirect:/login";
+        
+        Proyecto proyecto = proyectoRepository.findById(id).orElse(null);
+        if (proyecto == null) {
+            return "redirect:/proyectos";
+        }
+        
+        // Verificar que el usuario sea participante
+        Integer usuarioEnSesionId = usuario.getId();
+        boolean esParticipante = proyecto.getParticipantes().stream()
+                .anyMatch(u -> u.getId().equals(usuarioEnSesionId));
+        
+        if (!esParticipante) {
+            return "redirect:/proyectos";
+        }
+        
+        proyecto.setNombre(nombre);
+        proyecto.setDescripcion(descripcion);
+        
+        // Actualizar participantes
+        List<Usuario> participantes = new ArrayList<>();
+        participantes.add(usuario); // mantener al usuario actual
+        
+        if (correosParticipantes != null && !correosParticipantes.trim().isEmpty()) {
+            String[] correos = correosParticipantes.split(",");
+            for (String correo : correos) {
+                Usuario u = usuarioRepository.findByCorreo(correo.trim());
+                if (u != null && !participantes.contains(u)) participantes.add(u);
+            }
+        }
+        proyecto.setParticipantes(participantes);
+        proyectoRepository.save(proyecto);
+        
+        return "redirect:/proyectos";
+    }
+
     @PostMapping("/proyectos/{id}/eliminar")
     public String eliminarProyecto(@PathVariable Integer id, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Proyecto proyecto = proyectoRepository.findById(id).orElse(null);
-        if (proyecto != null) {
-            Integer usuarioEnSesionId = usuario.getId();
-            boolean esParticipante = proyecto.getParticipantes().stream()
-                    .anyMatch(u -> u.getId().equals(usuarioEnSesionId));
-            if (esParticipante) {
-                proyectoRepository.deleteById(id);
-                // Notificación a todos los participantes
-                for (Usuario u : proyecto.getParticipantes()) {
-                    crearNotificacion(u, "PROYECTO_ELIMINADO", "El proyecto '" + proyecto.getNombre() + "' fue eliminado.");
-                }
-            }
+        if (proyecto == null) {
+            return "redirect:/proyectos";
         }
+        
+        // Verificar que el usuario sea participante del proyecto
+        Integer usuarioEnSesionId = usuario.getId();
+        boolean esParticipante = proyecto.getParticipantes().stream()
+                .anyMatch(u -> u.getId().equals(usuarioEnSesionId));
+        
+        if (!esParticipante) {
+            return "redirect:/proyectos";
+        }
+        
+        // PRIMERO: Eliminar todas las tareas asociadas al proyecto
+        List<Tarea> tareasDelProyecto = tareaRepository.findByProyectoId(id);
+        tareaRepository.deleteAll(tareasDelProyecto);
+        
+        // Notificar a todos los participantes
+        for (Usuario u : proyecto.getParticipantes()) {
+            crearNotificacion(u, "PROYECTO_ELIMINADO", 
+                "El proyecto '" + proyecto.getNombre() + "' fue eliminado.");
+        }
+        
+        // DESPUÉS: Eliminar el proyecto
+        proyectoRepository.deleteById(id);
+        
         return "redirect:/proyectos";
     }
 
-    // ---------- TAREAS GLOBAL -----------
+    // ==================== TAREAS ====================
+    
     @GetMapping("/tareas")
     public String vistaTareas(Model model,
                               @RequestParam(required = false) String query,
@@ -121,13 +185,16 @@ public class WebController {
                               HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         List<Tarea> tareas;
         List<Proyecto> proyectosUsuario = proyectoRepository.findByParticipantes_Id(usuario.getId());
         List<Integer> ids = proyectosUsuario.stream().map(Proyecto::getId).toList();
+        
         tareas = tareaRepository.findAll().stream()
                 .filter(t -> t.getProyecto() != null && ids.contains(t.getProyecto().getId()))
                 .toList();
 
+        // Filtros
         if (query != null && !query.isBlank()) {
             tareas = tareas.stream()
                     .filter(t -> t.getTitulo().toLowerCase().contains(query.toLowerCase())
@@ -149,6 +216,7 @@ public class WebController {
         List<Proyecto> proyectos = proyectosUsuario;
         List<Usuario> usuarios = new ArrayList<>();
 
+        // Estadísticas
         long pendientes = tareas.stream().filter(t -> "Pendiente".equalsIgnoreCase(t.getEstado())).count();
         long enProgreso = tareas.stream().filter(t -> "En progreso".equalsIgnoreCase(t.getEstado())).count();
         long completadas = tareas.stream().filter(t -> "Completada".equalsIgnoreCase(t.getEstado())).count();
@@ -180,6 +248,7 @@ public class WebController {
                              HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Proyecto proyecto = proyectoRepository.findById(proyectoId).orElse(null);
         if (proyecto == null) return "redirect:/tareas";
 
@@ -215,8 +284,10 @@ public class WebController {
                               HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Proyecto proyecto = proyectoRepository.findById(proyectoId).orElse(null);
         if (proyecto == null) return "redirect:/tareas";
+        
         Tarea t = tareaRepository.findById(id).orElseThrow();
 
         t.setTitulo(titulo);
@@ -228,7 +299,7 @@ public class WebController {
 
         tareaRepository.save(t);
 
-        // Notificar edición a participantes (opcional)
+        // Notificar edición a participantes
         for (Usuario u : proyecto.getParticipantes()) {
             crearNotificacion(u, "TAREA_EDITADA", "La tarea '" + t.getTitulo() + "' fue editada en el proyecto '" + proyecto.getNombre() + "'.");
         }
@@ -239,6 +310,7 @@ public class WebController {
     public String eliminarTarea(@PathVariable Integer id, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Tarea tarea = tareaRepository.findById(id).orElse(null);
         if (tarea != null && tarea.getProyecto() != null) {
             Proyecto proyecto = tarea.getProyecto();
@@ -254,16 +326,20 @@ public class WebController {
     public String detalleTarea(@PathVariable Integer id, Model model, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         Tarea t = tareaRepository.findById(id).orElseThrow();
         model.addAttribute("tarea", t);
         model.addAttribute("activePage", "tareas");
         return "tarea-detalle";
     }
 
+    // ==================== DASHBOARD ====================
+    
     @GetMapping("/dashboard")
     public String mostrarDashboard(Model model, HttpSession session) {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         if (usuario == null) return "redirect:/login";
+        
         List<Proyecto> proyectos = proyectoRepository.findByParticipantes_Id(usuario.getId());
         List<Integer> ids = proyectos.stream().map(Proyecto::getId).toList();
         List<Tarea> tareas = tareaRepository.findAll().stream()
