@@ -18,13 +18,13 @@ public class TareaController {
     @Autowired
     private TareaRepository tareaRepository;
 
-    // ✅ Obtener todas las tareas
+    // Obtener todas las tareas (GET /api/v1/tareas)
     @GetMapping
     public List<Tarea> getAllTareas() {
         return tareaRepository.findAll();
     }
 
-    // ✅ Obtener tarea por ID
+    // Obtener tarea por ID (GET /api/v1/tareas/{id})
     @GetMapping("/{id}")
     public ResponseEntity<Tarea> getTareaById(@PathVariable int id) {
         Tarea tarea = tareaRepository.findById(id)
@@ -32,33 +32,15 @@ public class TareaController {
         return ResponseEntity.ok(tarea);
     }
 
-    @PostMapping("/tareas")
-public String crearTarea(@RequestParam String titulo,
-                         @RequestParam String descripcion,
-                         @RequestParam String prioridad,
-                         @RequestParam String estado,
-                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date fechaLimite) {
+    // Crear tarea (POST /api/v1/tareas)
+    @PostMapping
+    public ResponseEntity<Tarea> crearTareaApi(@RequestBody Tarea nuevaTarea) {
+        nuevaTarea.setFechaCreacion(LocalDateTime.now());
+        tareaRepository.save(nuevaTarea);
+        return ResponseEntity.ok(nuevaTarea);
+    }
 
-    LocalDateTime fechaLimiteLDT = fechaLimite.toInstant()
-        .atZone(ZoneId.systemDefault())
-        .toLocalDateTime();
-
-    // Para la fecha de creación usamos el momento actual:
-    LocalDateTime fechaCreacionLDT = LocalDateTime.now();
-
-    Tarea t = new Tarea();
-    t.setTitulo(titulo);
-    t.setDescripcion(descripcion);
-    t.setPrioridad(prioridad);
-    t.setEstado(estado);
-    t.setFechaLimite(fechaLimiteLDT);
-    t.setFechaCreacion(fechaCreacionLDT);
-    tareaRepository.save(t);
-    return "redirect:/tareas";
-}
-
-
-    // ✅ Actualizar tarea
+    // Actualizar tarea (PUT /api/v1/tareas/{id})
     @PutMapping("/{id}")
     public ResponseEntity<Tarea> updateTarea(@PathVariable int id, @RequestBody Tarea detalles) {
         Tarea tarea = tareaRepository.findById(id)
@@ -74,7 +56,7 @@ public String crearTarea(@RequestParam String titulo,
         return ResponseEntity.ok(actualizada);
     }
 
-    // ✅ Eliminar tarea
+    // Eliminar tarea (DELETE /api/v1/tareas/{id})
     @DeleteMapping("/{id}")
     public Map<String, Boolean> deleteTarea(@PathVariable int id) {
         Tarea tarea = tareaRepository.findById(id)
@@ -86,19 +68,19 @@ public String crearTarea(@RequestParam String titulo,
         return response;
     }
 
-    // ✅ Filtrar por estado
+    // Filtrar por estado (GET /api/v1/tareas/estado/{estado})
     @GetMapping("/estado/{estado}")
     public List<Tarea> getTareasByEstado(@PathVariable String estado) {
         return tareaRepository.findByEstado(estado);
     }
 
-    // ✅ Filtrar por prioridad
+    // Filtrar por prioridad (GET /api/v1/tareas/prioridad/{prioridad})
     @GetMapping("/prioridad/{prioridad}")
     public List<Tarea> getTareasByPrioridad(@PathVariable String prioridad) {
         return tareaRepository.findByPrioridad(prioridad);
     }
 
-    // ✅ Filtrar por responsable
+    // Filtrar por responsable (GET /api/v1/tareas/responsable/{usuarioId})
     @GetMapping("/responsable/{usuarioId}")
     public List<Tarea> getTareasByResponsable(@PathVariable int usuarioId) {
         return tareaRepository.findByResponsableId(usuarioId);

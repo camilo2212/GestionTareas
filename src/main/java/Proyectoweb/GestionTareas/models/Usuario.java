@@ -2,6 +2,7 @@ package Proyectoweb.GestionTareas.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 
 @Data
@@ -13,7 +14,7 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id; 
+    private Integer id;
 
     @Column(nullable = false)
     private String nombre;
@@ -24,14 +25,19 @@ public class Usuario {
     @Column(nullable = false)
     private String contrasena;
 
-    // Puedes usar un enum si prefieres: private Rol rol;
     @Column(nullable = false)
     private String rol; // ADMINISTRADOR o MIEMBRO
 
-    // Asegúrate que el nombre coincida con el atributo en Tarea (por ejemplo, "responsable").
+    // Relación con Tarea, evita ciclo con @JsonIgnore y @ToString.Exclude
     @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // <-- ¡esto es crítico!
+    @ToString.Exclude
     private List<Tarea> tareasAsignadas;
 
+    // Relación con Notificacion, igual
     @OneToMany(mappedBy = "destinatario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
     private List<Notificacion> notificaciones;
 }
+

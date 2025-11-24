@@ -1,78 +1,50 @@
 package Proyectoweb.GestionTareas.controllers;
 
 import Proyectoweb.GestionTareas.models.Notificacion;
-import Proyectoweb.GestionTareas.Repositories.NotificacionRepository;
-import Proyectoweb.GestionTareas.Repositories.UsuarioRepository;
 import Proyectoweb.GestionTareas.models.Usuario;
+import Proyectoweb.GestionTareas.Repositories.NotificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import java.time.LocalDateTime;
-import java.util.*;
 
-@RestController
-@RequestMapping("/api/v1/notificaciones")
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
+
+@Controller
 public class NotificacionController {
 
     @Autowired
     private NotificacionRepository notificacionRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    // Obtener todas las notificaciones
-    @GetMapping
-    public List<Notificacion> getAllNotificaciones() {
-        return notificacionRepository.findAll();
+    @GetMapping("/notificaciones")
+    public String verNotificaciones(Model model, HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        if (usuario == null) return "redirect:/login";
+        List<Notificacion> notis = notificacionRepository.findByDestinatarioOrderByFechaDesc(usuario);
+        model.addAttribute("notificaciones", notis);
+        return "notificaciones";
     }
 
-    // Obtener por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Notificacion> getNotificacionById(@PathVariable int id) {
-        Notificacion notificacion = notificacionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notificación no encontrada con id: " + id));
-        return ResponseEntity.ok(notificacion);
+    @PostMapping("/notificaciones/{id}/leer")
+    public String marcarNotificacionLeida(@PathVariable Integer id, HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        if (usuario == null) return "redirect:/login";
+        Notificacion notif = notificacionRepository.findById(id).orElse(null);
+        if (notif != null && notif.getDestinatario().getId().equals(usuario.getId())) {
+            notif.setLeida(true);
+            notificacionRepository.save(notif);
+        }
+        return "redirect:/notificaciones";
     }
+    @PostMapping("/notificaciones/leertodas")
+public String leerTodas(HttpSession session) {
+    Usuario usuario = (Usuario) session.getAttribute("usuario");
+    if (usuario == null) return "redirect:/login";
+    List<Notificacion> notifList = notificacionRepository.findByDestinatarioAndLeidaFalseOrderByFechaDesc(usuario);
+    notifList.forEach(n -> n.setLeida(true));
+    notificacionRepository.saveAll(notifList);
+    return "redirect:/notificaciones";
+}
 
-    // Crear notificación
-    @PostMapping
-    public Notificacion createNotificacion(@RequestBody Map<String, Object> datos) {
-        Notificacion notificacion = new Notificacion();
-        notificacion.setMensaje((String) datos.get("mensaje"));
-        notificacion.setLeida(false);
-        notificacion.setFecha(LocalDateTime.now());
-        notificacion.setTipo((String) datos.getOrDefault("tipo", "INFO"));
-
-        // Extrae el id de destinatario y lo busca
-        Integer destinatarioId = (Integer) datos.get("destinatarioId");
-        Usuario usuario = usuarioRepository.findById(destinatarioId)
-                .orElseThrow(() -> new RuntimeException("Destinatario no encontrado"));
-        notificacion.setDestinatario(usuario);
-
-        return notificacionRepository.save(notificacion);
-    }
-
-    // Actualizar notificación
-    @PutMapping("/{id}")
-    public ResponseEntity<Notificacion> updateNotificacion(@PathVariable int id, @RequestBody Notificacion detalles) {
-        Notificacion notificacion = notificacionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notificación no encontrada con id: " + id));
-
-        notificacion.setMensaje(detalles.getMensaje());
-        notificacion.setLeida(detalles.isLeida());
-        notificacion.setTipo(detalles.getTipo());
-        // Puedes actualizar destinatario si quieres, pero cuidado con la lógica
-
-        Notificacion actualizada = notificacionRepository.save(notificacion);
-        return ResponseEntity.ok(actualizada);
-    }
-
-    // Eliminar notificación
-    @DeleteMapping("/{id}")
-    public Map<String, Boolean> deleteNotificacion(@PathVariable int id) {
-        notificacionRepository.deleteById(id);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("eliminado", Boolean.TRUE);
-        return response;
-    }
 }

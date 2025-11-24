@@ -3,7 +3,6 @@ package Proyectoweb.GestionTareas.models;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -27,16 +26,19 @@ public class Tarea {
     private String prioridad;
 
     private LocalDateTime fechaCreacion;
-
     private LocalDateTime fechaLimite;
 
-    // Relación con Usuario
+    // Relación con Usuario (responsable)
     @ManyToOne
     @JoinColumn(name = "usuario_id")
+    @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore  // IMPORTANTE si tu app ofrece serialización/rest
     private Usuario responsable;
 
     // Relación con Proyecto
     @ManyToOne
     @JoinColumn(name = "proyecto_id")
+    @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore // idem arriba, por si acaso
     private Proyecto proyecto;
 }

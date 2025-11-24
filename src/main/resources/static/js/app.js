@@ -1,9 +1,9 @@
-// ----------- GESTIÓN DE PROYECTOS (API REST) -----------
+// ----------- API Rest de Proyectos -----------
 
-// URL para la API REST de proyectos (cambia si usas otro endpoint)
+// Cambia URL si tu backend es distinto.
 const API_URL = "http://localhost:8080/api/v1/proyectos";
 
-// Cargar lista de proyectos (solo si elemento existe)
+// Carga lista de proyectos (opcional, para otras vistas)
 async function cargarProyectos() {
     const lista = document.getElementById("listaProyectos");
     if (!lista) return;
@@ -30,7 +30,7 @@ async function cargarProyectos() {
     });
 }
 
-// Crear proyecto nuevo
+// Crear proyecto nuevo (opcional, según tu flujo)
 async function crearProyecto() {
     const nombre = document.getElementById("nombre").value;
     const descripcion = document.getElementById("descripcion").value;
@@ -47,19 +47,19 @@ async function crearProyecto() {
     cargarProyectos();
 }
 
-// Navega a la vista de tareas con parámetro
+// Navegar a vista por tareas de proyecto
 function verTareas(id) {
     window.location.href = `tareas.html?proyecto=${id}`;
 }
 
-// Eliminar proyecto
+// Eliminar un proyecto (opcional, según tu flujo)
 async function eliminarProyecto(id) {
     if (!confirm("¿Eliminar proyecto?")) return;
     await fetch(`${API_URL}/${id}`, { method: "DELETE" });
     cargarProyectos();
 }
 
-// ----------- CONFIRMACIÓN DE BORRADO UNIVERSAL -----------
+// ----------- Confirmación universal de borrado -----------
 
 document.addEventListener("DOMContentLoaded", function() {
     const forms = document.querySelectorAll("form[action*='/eliminar']");
@@ -72,10 +72,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-// ----------- DASHBOARD DE TAREAS (CHART.JS) -----------
+// ----------- DASHBOARD Y CALENDARIO -----------
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Gráfico de prioridades
+    // Dashboard-Charts: Estadísticas de tareas
     if (typeof Chart !== 'undefined' && document.getElementById('prioridadChart')) {
         new Chart(document.getElementById('prioridadChart'), {
             type: 'pie',
@@ -89,8 +89,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-
-    // Gráfico de estados
     if (typeof Chart !== 'undefined' && document.getElementById('estadoChart')) {
         new Chart(document.getElementById('estadoChart'), {
             type: 'doughnut',
@@ -105,53 +103,54 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ----------- FULLCALENDAR (VISTA DÍA + MODAL DETALLE) -----------
+    // ----------- FULLCALENDAR dentro de pestaña -----------
 
-    const calendarEl = document.getElementById('calendar');
-    if (calendarEl && typeof FullCalendar !== 'undefined') {
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            // Vista inicial por día; puedes cambiar a 'dayGridDay' si no quieres horas [web:29][web:33]
-            initialView: 'timeGridDay',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridDay,timeGridWeek,dayGridMonth'
-            },
-            events: calendarEvents.map(t => ({
-                title: t.titulo + (t.responsable ? " (" + t.responsable.nombre + ")" : ""),
-                start: t.fechaLimite,
-                color: t.estado === 'Completada' ? '#4caf50'
-                      : (t.estado === 'En progreso' ? '#2196f3' : '#f2bc41'),
-                extendedProps: {
-                    descripcion: t.descripcion,
-                    prioridad: t.prioridad,
-                    estado: t.estado
-                }
-            })),
-            eventClick: function(info) {
-                // Llenar modal con detalles de la tarea [web:2][web:58]
-                document.getElementById("detalleTareaTitulo").textContent =
-                    info.event.title;
-                document.getElementById("detalleTareaDescripcion").textContent =
-                    info.event.extendedProps.descripcion || "";
-                document.getElementById("detalleTareaPrioridad").textContent =
-                    info.event.extendedProps.prioridad || "";
-                document.getElementById("detalleTareaEstado").textContent =
-                    info.event.extendedProps.estado || "";
-
-                const fecha = new Date(info.event.start);
-                document.getElementById("detalleTareaFecha").textContent =
-                    fecha.toLocaleDateString();
-
-                const modal = new bootstrap.Modal(
-                    document.getElementById('detalleTareaModal')
-                );
-                modal.show();
-
-                info.jsEvent.preventDefault();
+    let calendar;
+    const calendarioTabButton = document.getElementById('calendario-tab');
+    if(calendarioTabButton){
+        calendarioTabButton.addEventListener('shown.bs.tab', function () {
+            if (!calendar) {
+                const calendarEl = document.getElementById("calendar");
+                if(!calendarEl) return;
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridDay,timeGridWeek,dayGridMonth'
+                    },
+                    events: Array.isArray(calendarEvents) ? calendarEvents.map(function(t) {
+                        return {
+                            title: t.titulo + (t.responsable && t.responsable.nombre ? " (" + t.responsable.nombre + ")" : ""),
+                            start: t.fechaLimite ? t.fechaLimite : null,
+                            url: "/tareas/" + t.id + "/detalle",
+                            color: t.estado === "Completada" ? "#4caf50" :
+                                (t.estado === "En progreso" ? "#2196f3" : "#f2bc41"),
+                            extendedProps: {
+                                descripcion: t.descripcion,
+                                prioridad: t.prioridad,
+                                estado: t.estado,
+                                id: t.id
+                            }
+                        }
+                    }) : [],
+                    eventClick: function(info) {
+                        // VENTANA MODAL de detalle (solo si tienes el modal en tu HTML)
+                        if(document.getElementById("detalleTareaTitulo")){
+                            document.getElementById("detalleTareaTitulo").textContent = info.event.title;
+                            document.getElementById("detalleTareaDescripcion").textContent = info.event.extendedProps.descripcion || "";
+                            document.getElementById("detalleTareaPrioridad").textContent = info.event.extendedProps.prioridad || "";
+                            document.getElementById("detalleTareaEstado").textContent = info.event.extendedProps.estado || "";
+                            const fecha = new Date(info.event.start);
+                            document.getElementById("detalleTareaFecha").textContent = fecha.toLocaleDateString();
+                            const modal = new bootstrap.Modal(document.getElementById('detalleTareaModal'));
+                            modal.show();
+                        }
+                        info.jsEvent.preventDefault();
+                    }
+                });
+                calendar.render();
             }
         });
-
-        calendar.render();
     }
 });
