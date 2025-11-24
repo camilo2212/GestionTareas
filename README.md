@@ -1,0 +1,1 @@
+hola@gmail.com puedes usar este correo para agregar como participantes en un proyecto cualquier cosa la contraseña de este correo: 12345678, la aplicacion web no esta con verificacion por gmail asi que se puede registrar sin un correo real, otra cuenta es dos@gmail.com y la contraseña es 12345678
